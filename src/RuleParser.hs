@@ -1,36 +1,26 @@
 module RuleParser where
 
-import RuleLexer as Lexer
-
-data Rule =
-  Ass Name Rule|
-  Combinator Rule Rule|
-  Or Rule Rule|
-  Cycle Rule|
-  Cond Rule|
-  RuleName Name|
-  Terminator String|
-  Empty
-  deriving (Show)
+import qualified RuleLexer as Lexer
+import Generator.Rule
 
 parse :: [Lexer.Exp] -> Rule
-parse ((Lexer.ExpName name):(Lexer.Ass):value) = RuleParser.Ass name (combin Empty value)
+parse ((Lexer.ExpName name):(Lexer.Ass):value) = Ass name (combin Empty value)
 combin :: Rule -> [Lexer.Exp] -> Rule --combin the unary operator first
 combin rule [] = rule
 combin Empty ((Lexer.ExpName name):next) = combin (RuleName name) next
-combin Empty ((Lexer.Terminator name):next) = combin (RuleParser.Terminator name) next
+combin Empty ((Lexer.Terminator name):next) = combin (Terminator name) next
 combin Empty ((Lexer.CycleStart):body) = combin Empty body
 combin rule ((Lexer.CycleEnd):value) = combin (Cycle rule) value
 combin Empty ((Lexer.CondStart):body) = combin Empty body
 combin rule ((Lexer.CondEnd):value) = combin (Cond rule) value
 -- Binary operator
-combin rule ((Lexer.Or):value) = combin (RuleParser.Or rule nextValue) nextBody
+combin rule ((Lexer.Or):value) = combin (Or rule nextValue) nextBody
   where
     all = nextRule value
     nextValue = fst all
     nextBody = snd all
 
-combin rule ((Lexer.Cable):value) = combin (RuleParser.Combinator rule nextValue) nextBody
+combin rule ((Lexer.Cable):value) = combin (Combinator rule nextValue) nextBody
   where
     all = nextRule value
     nextValue = fst all
@@ -38,7 +28,7 @@ combin rule ((Lexer.Cable):value) = combin (RuleParser.Combinator rule nextValue
     
 nextRule :: [Lexer.Exp] -> (Rule,[Lexer.Exp])
 nextRule ((Lexer.ExpName name):next) = ((RuleName name),next)
-nextRule ((Lexer.Terminator name):next) = ((RuleParser.Terminator name),next)
+nextRule ((Lexer.Terminator name):next) = ((Terminator name),next)
 nextRule (Lexer.CycleStart:body) = getCycleBody body [] 1
 nextRule (Lexer.CondStart:body) = getCondBody body [] 1
 

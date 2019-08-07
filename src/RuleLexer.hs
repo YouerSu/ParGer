@@ -1,7 +1,6 @@
 module RuleLexer where
 
 import Data.List.Split
-import Control.Applicative
 
 type Name = String
 data Exp =
