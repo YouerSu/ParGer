@@ -8,32 +8,31 @@ generate rules parserName = print
 
 dataPrefix = "GT" -- Stands for: Generate Type
 funcPrefix = "p" -- Stands for: Parser
--- default data
-dataOr = "data Or a b = LOR a|ROR b"
-dataCond = "data Cond a = Cond a|Empty"
-  
---dataGenerate =
-generateData rules = "data Exp = " ++ $ intercalate "\n\t|"  (map rules singleData)
-singleData (Ass name body) = (dataPrefix++name) ++ (singleData body)
-singleData (RuleName name) = "Exp"
-singleData (Terminator name) = "String"
-singleData (Cycle rule) = '[':(singleData rule) ++ "]"
-singleData (Cond rule) = "(Cond "++ (singleData rule) ++ ")"
-singleData (Combinator rule nextRule) = (singleData rule) ++ " " ++ (singleData nextRule)
-singleData (Or rulel ruler) = "(OR " ++ (singleData rulel) ++ " " ++ (singleData ruler) ++ ")"
-
 --need to improve
 depends = "import Unit"
 funcNameGen name order = p:(name ++ (show order))
+funcVar name = "\n  where\n    value = pick $ " ++ funcName 
+  where
+    funcName = funcNameGen name 1
 
+--parser :: String -> Value (AST String,String)
+whereGen = "\n  where"
+varGen varName funcName valueName = "\n    " ++ varName ++ " = " ++ funcName ++ (' ':valueName)
+head funcName count = (funcNameGen funcName count) ++ " list = "
 singleParser :: Rule -> Int -> String
-singleParser (Ass name body) = ('p':name) ++ " = " ++ nextFuncName
+singleParser (Ass name body) = ('p':name) ++ " list = Value value tail  " ++ name ++ whereGen ++ (varGen "(value,tail)" nextFuncName "list")
   where
     nextFuncName = funcNameGen name 1
   
-singleParser (RuleName name) = '(' : (dataPrefix ++ name ++ ")")
-singleParser (Terminator name) = "String"
-singleParser (Cycle rule) = '[':(singleParser rule) ++ "]"
-singleParser (Cond rule) = "(Cond "++ (singleParser rule) ++ ")"
-singleParser (Combinator rule nextRule) = (singleParser rule) ++ (' ' : (singleParser nextRule))
-singleParser (Or rulel ruler) = "(OR " ++ (singleParser rulel) ++ " " ++ (singleParser ruler) ++ ")"
+singleParserGen (RuleName name) funcName count = (head funcName count) ++ "(Combin value `bind` values,tail)" ++ whereGen ++ (varGen  "(value,l)" ruleName "list") ++ (varGen "(values,tail)" nextFuncName "l")
+  where
+    ruleName = funcName name 1
+
+singleParserGen (Terminator value) funcName count = (head funcName count) ++ "(value `bind` values,tail)" ++ whereGen ++ (varGen "(value,l)" nextFuncName "list") ++ (varGen "(values,tail)" nextFuncName "l")
+  where
+    nextFuncName = funcName name (count+1)
+    
+singleParserGen (Cycle rule) = '[':(singleParserGen rule) ++ "]"
+singleParserGen (Cond rule) = "(Cond "++ (singleParserGen rule) ++ ")"
+singleParserGen (Combinator rule nextRule) = (singleParserGen rule) ++ (' ' : (singleParserGen nextRule))
+singleParserGen (Or rulel ruler) = "(OR " ++ (singleParserGen rulel) ++ " " ++ (singleParserGen ruler) ++ ")"
