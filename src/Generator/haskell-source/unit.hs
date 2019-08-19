@@ -2,7 +2,8 @@ module Unit where
 
 --import Data.List
 
-data AST a = Node a|Combin [(AST a)]|Error
+data AST a = Node a|Combin [(AST a)]|Cycle [AST a]|Cond [AST a]|Error
+  deriving (Eq)
 
 instance Functor AST where
   fmap f (Node value) = pure $ f value
@@ -62,3 +63,25 @@ uor :: [AST String] -> [AST String] -> [AST String]
 [Error] `uor` [Error] = [Error]
 [Error] `uor` value = value `uor` [Error] --Fuor >>= run cuorrect
 value `uor` _ = value
+
+ruleCycle rulePar list = (Cycle value,tail)
+  where
+    (value,tail) = cycleRule rulePar list
+cycleRule rulePar list
+  |v == [Error] = ([],list)
+  |otherwise = let (value,tail) = (cycleRule rulePar t) in (v++value,tail)
+  where
+    (v,t) = rulePar list
+
+ruleCond rulePar list
+  |v == [Error] = (Cond [],list)
+  |otherwise = (Cond v,t)
+  where
+    (v,t) = rulePar list
+
+ruleOr lRulePar rRulePar list
+  |value /= [Error] = left
+  |otherwise = right
+  where
+    left@(value,_) = lRulePar list
+    right = rRulePar list

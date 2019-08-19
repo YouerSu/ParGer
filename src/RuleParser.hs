@@ -1,4 +1,4 @@
-module RuleParser where
+module RuleParse where
 
 import qualified RuleLexer as Lexer
 import Generator.Rule
