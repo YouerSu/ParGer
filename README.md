@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/YouerSu/ParGer.svg?branch=master)](https://travis-ci.org/YouerSu/ParGer)
 
-ParGer is a ParserGen bases on Haskell,It can help you if you don't want to write a parser by yourself(It's very boring).
+ParGer is a ParserGen which is bases on Haskell,It can save your time if you don't want to write a parser by yourself(It's very boring).
 
 ## How to use ParGer
 
