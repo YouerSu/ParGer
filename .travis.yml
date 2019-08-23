@@ -1,2 +1,5 @@
 language: haskell
-script: true
+cabal: "2.4"
+ghc: 
+  - "8.0.2"
+  - "8.4.1"
