@@ -1,8 +1,10 @@
-module RuleParse where
+module RuleParser where
 
 import qualified RuleLexer as Lexer
 import Generator.Rule
 
+parseStream :: [[Lexer.Exp]] -> [Rule]
+parseStream = map parse
 parse :: [Lexer.Exp] -> Rule
 parse ((Lexer.ExpName name):(Lexer.Ass):value) = Ass name (combin Empty value)
 combin :: Rule -> [Lexer.Exp] -> Rule --combin the unary operator first
@@ -16,21 +18,19 @@ combin rule ((Lexer.CondEnd):value) = combin (Cond rule) value
 -- Binary operator
 combin rule ((Lexer.Or):value) = combin (Or rule nextValue) nextBody
   where
-    all = nextRule value
-    nextValue = fst all
-    nextBody = snd all
+    (nextValue,nextBody) = nextRule value
 
 combin rule ((Lexer.Cable):value) = combin (Combinator rule nextValue) nextBody
   where
-    all = nextRule value
-    nextValue = fst all
-    nextBody = snd all
+    (nextValue,nextBody) = nextRule value
     
 nextRule :: [Lexer.Exp] -> (Rule,[Lexer.Exp])
 nextRule ((Lexer.ExpName name):next) = ((RuleName name),next)
 nextRule ((Lexer.Terminator name):next) = ((Terminator name),next)
 nextRule (Lexer.CycleStart:body) = getCycleBody body [] 1
 nextRule (Lexer.CondStart:body) = getCondBody body [] 1
+nextRule (Lexer.Or:body) = error "Next rule shouldn't be 'OR'"
+nextRule (Lexer.Cable:body) = error "Next rule shouldn't be 'Cable'"
 
 getCycleBody :: [Lexer.Exp] -> [Lexer.Exp] -> Int -> (Rule,[Lexer.Exp])
 getCycleBody (Lexer.CycleEnd:xs) body 1 = ((combin Empty body),xs )

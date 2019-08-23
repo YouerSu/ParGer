@@ -41,14 +41,17 @@ expStream = (map expAnalysis) . getExps
 seperateExps :: [String] -> [String]
 seperateExps [] = []
 seperateExps (x:xs)
-  |foldr (\elemt bool -> (elem elemt x)||bool)  False seperateToken = (seperate x []) ++ seperateExps xs
+  |include x = (seperate x []) ++ seperateExps xs
   |otherwise = x : (seperateExps xs)
+include list@(x:xs)
+  |x == '\'' = False
+  |otherwise = foldr (\elemt bool -> (elem elemt list)||bool)  False seperateToken
 
 seperate :: String -> [String] -> [String]
 seperate (x:xs) acc@(y:ys)
   |elem x seperateToken = (seperate [] ((x:[]):acc)) ++ (seperate xs [])
   |otherwise = seperate xs ((y ++ (x:[])):ys)
-seperate (x:xs) []
+seperate str@(x:xs) []
   |elem x seperateToken = (x:[]):seperate xs []
   |otherwise = seperate xs ((x:[]):[])
 seperate [] acc = foldl (\list x -> x:list) [] acc

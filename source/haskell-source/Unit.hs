@@ -60,15 +60,14 @@ value `bind` list = value:list
 
 infixl 8 `uor`
 uor :: [AST String] -> [AST String] -> [AST String]
-[Error] `uor` [Error] = [Error]
-[Error] `uor` value = value `uor` [Error] --Fuor >>= run cuorrect
+[Error] `uor` value = value
 value `uor` _ = value
 
 ruleCycle rulePar list = (Cycle value,tail)
   where
     (value,tail) = cycleRule rulePar list
 cycleRule rulePar list
-  |v == [Error] = ([],list)
+  |v == [Combin [Error]] = ([],list)
   |otherwise = let (value,tail) = (cycleRule rulePar t) in (v++value,tail)
   where
     (v,t) = rulePar list
