@@ -20,6 +20,6 @@ Besides,don't forget to set up the lang of Parser at the beginning
 
     lang ::= name
 
-> Suppose Language:
+> Supported Language:
 
 - haskell
